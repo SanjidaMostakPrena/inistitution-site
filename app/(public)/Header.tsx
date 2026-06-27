@@ -78,7 +78,7 @@ export default function Header() {
 
   const galleryItems = [
     { label: "ছবি গ্যালারি", href: "/gallery/photo" },
-    { label: "ভিডিও গ্যালারি", href: "/gallery/video" },
+    
   ];
 
   return (

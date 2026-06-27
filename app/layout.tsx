@@ -1,15 +1,12 @@
 
-import { Inter } from "next/font/google";
+import type { Metadata } from "next";
+import { AuthProvider } from "@/app/context/AuthContext";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { ApplicationProvider } from "./context/ApplicationContext";
 
-
-const inter = Inter({ subsets: ['latin'] });
-
-export const metadata = {
-  title: "Institution Name - Excellence in Education",
-  description: "Leading educational institution providing quality education",
+export const metadata: Metadata = {
+  title: "পলাশবাড়ী সুতি মাহমুদ মডেল পাইলট সরকারি উচ্চ বিদ্যালয়",
+  description: "শিক্ষায় শ্রেষ্ঠত্ব",
 };
 
 export default function RootLayout({
@@ -18,13 +15,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer/>
-        </div>
+    <html lang="bn">
+      <body>
+        <AuthProvider>    {/* ← এখানেই প্রোভাইডার যোগ করুন */}
+          <ApplicationProvider>   {/* ← এখানে প্রোভাইডার যোগ করুন */}
+            {children}
+          </ApplicationProvider>
+        </AuthProvider>
       </body>
     </html>
   );

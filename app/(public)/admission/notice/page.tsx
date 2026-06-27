@@ -11,29 +11,18 @@ import {
   Eye,
   Download,
   Search,
-  Filter,
   X,
   FileText,
   FileCheck,
   Award,
-  AlertCircle,
-  CheckCircle,
   ChevronRight,
   Users,
   Bell,
   MessageSquare,
   Share2,
   Printer,
-  ExternalLink,
-  Sparkles,
   Star,
-  TrendingUp,
-  Tag,
   User,
-  Mail,
-  Phone,
-  MapPin,
-  Globe,
   Clock as ClockIcon,
   Calendar as CalendarIcon,
   Trophy,
@@ -41,7 +30,6 @@ import {
 
 export default function NoticesPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedNotice, setSelectedNotice] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -199,14 +187,6 @@ export default function NoticesPage() {
     },
   ];
 
-  const categories = [
-    { id: "all", label: "সব নোটিশ", icon: <FileText className="h-4 w-4" /> },
-    { id: "circular", label: "বিজ্ঞপ্তি", icon: <FileCheck className="h-4 w-4" /> },
-    { id: "schedule", label: "সময়সূচী", icon: <Calendar className="h-4 w-4" /> },
-    { id: "announcement", label: "ঘোষণা", icon: <Megaphone className="h-4 w-4" /> },
-    { id: "result", label: "ফলাফল", icon: <Award className="h-4 w-4" /> },
-  ];
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
@@ -233,21 +213,6 @@ export default function NoticesPage() {
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "circular":
-        return "bg-blue-100 text-blue-700";
-      case "schedule":
-        return "bg-purple-100 text-purple-700";
-      case "announcement":
-        return "bg-yellow-100 text-yellow-700";
-      case "result":
-        return "bg-red-100 text-red-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
   const getCategoryLabel = (category: string) => {
     switch (category) {
       case "circular":
@@ -266,8 +231,7 @@ export default function NoticesPage() {
   const filteredNotices = notices.filter((notice) => {
     const matchesSearch = notice.title.includes(searchTerm) ||
                          notice.excerpt.includes(searchTerm);
-    const matchesCategory = selectedCategory === "all" || notice.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
   const openModal = (notice: any) => {
@@ -312,7 +276,7 @@ export default function NoticesPage() {
         </div>
       </section>
 
-      {/* অনুসন্ধান ও ফিল্টার */}
+      {/* অনুসন্ধান */}
       <section className="py-4 sm:py-6 bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-16 lg:top-20 z-10">
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between max-w-6xl mx-auto">
@@ -328,22 +292,6 @@ export default function NoticesPage() {
                 />
               </div>
             </div>
-            <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-2 scrollbar-hide">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-sm font-medium transition-all duration-300 flex items-center gap-1 sm:gap-2 whitespace-nowrap ${
-                    selectedCategory === category.id
-                      ? "bg-gradient-to-r from-green-500 to-red-500 text-white shadow-lg scale-105"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:scale-105"
-                  }`}
-                >
-                  {category.icon}
-                  <span className="hidden xs:inline">{category.label}</span>
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       </section>
@@ -356,21 +304,13 @@ export default function NoticesPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-4 sm:mb-6">
               <p className="text-xs sm:text-sm text-gray-500">
                 <span className="font-semibold text-slate-800">{filteredNotices.length}</span> টি নোটিশ দেখানো হচ্ছে
-                {selectedCategory !== "all" && (
-                  <span className="ml-1">
-                    <span className="font-semibold text-slate-800">{getCategoryLabel(selectedCategory)}</span> বিভাগে
-                  </span>
-                )}
               </p>
               <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedCategory("all");
-                }}
+                onClick={() => setSearchTerm("")}
                 className="text-xs sm:text-sm text-green-600 hover:text-green-700 font-medium flex items-center gap-1 hover:gap-2 transition-all"
               >
                 <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                সব清除 করুন
+                সব করুন
               </button>
             </div>
 
@@ -378,7 +318,7 @@ export default function NoticesPage() {
               <div className="text-center py-12">
                 <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">🔍</div>
                 <h3 className="text-lg sm:text-xl font-semibold text-slate-800">কোন নোটিশ পাওয়া যায়নি</h3>
-                <p className="text-gray-500 mt-1 sm:mt-2 text-sm sm:text-base">আপনার অনুসন্ধান বা ফিল্টার সামঞ্জস্য করুন</p>
+                <p className="text-gray-500 mt-1 sm:mt-2 text-sm sm:text-base">আপনার অনুসন্ধান সামঞ্জস্য করুন</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
@@ -393,7 +333,7 @@ export default function NoticesPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
-                            <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium ${getCategoryColor(notice.category)}`}>
+                            <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-blue-100 text-blue-700`}>
                               {getCategoryLabel(notice.category)}
                             </span>
                             <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium ${getPriorityColor(notice.priority)}`}>
