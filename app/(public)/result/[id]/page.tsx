@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -1115,38 +1114,42 @@ export default function ResultDetailsPage() {
                 <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 animate-fade-in-up">
                   <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">গ্রেড বিতরণ</h2>
                   <div className="space-y-1.5 sm:space-y-2">
-                    {Object.entries(result.statistics.gradeDistribution).map(([grade, count]) => (
-                      <div key={grade} className="flex items-center gap-2 sm:gap-3">
-                        <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold w-8 sm:w-10 text-center ${getGradeColor(grade)}`}>
-                          {grade}
-                        </span>
-                        <div className="flex-1 h-4 sm:h-5 md:h-6 bg-gray-100 rounded-full overflow-hidden relative">
-                          <div
-                            className={`h-full rounded-full transition-all duration-1000 ${
-                              grade === "এ+" ? "bg-emerald-500" :
-                              grade === "এ" ? "bg-green-500" :
-                              grade === "এ-" ? "bg-lime-500" :
-                              grade === "বি+" ? "bg-blue-500" :
-                              grade === "বি" ? "bg-cyan-500" :
-                              grade === "বি-" ? "bg-sky-500" :
-                              grade === "সি+" ? "bg-yellow-500" :
-                              grade === "সি" ? "bg-orange-500" :
-                              grade === "ডি" ? "bg-red-500" :
-                              "bg-rose-500"
-                            }`}
-                            style={{
-                              width: `${(count as number / result.statistics.totalExaminees) * 100}%`,
-                            }}
-                          />
-                          <span className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs font-medium text-gray-700">
-                            {count}
+                    {Object.entries(result.statistics.gradeDistribution).map(([grade, count]) => {
+                      // কাস্ট করে নিচ্ছি count কে number হিসেবে
+                      const countNum = count as number;
+                      return (
+                        <div key={grade} className="flex items-center gap-2 sm:gap-3">
+                          <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold w-8 sm:w-10 text-center ${getGradeColor(grade)}`}>
+                            {grade}
+                          </span>
+                          <div className="flex-1 h-4 sm:h-5 md:h-6 bg-gray-100 rounded-full overflow-hidden relative">
+                            <div
+                              className={`h-full rounded-full transition-all duration-1000 ${
+                                grade === "এ+" ? "bg-emerald-500" :
+                                grade === "এ" ? "bg-green-500" :
+                                grade === "এ-" ? "bg-lime-500" :
+                                grade === "বি+" ? "bg-blue-500" :
+                                grade === "বি" ? "bg-cyan-500" :
+                                grade === "বি-" ? "bg-sky-500" :
+                                grade === "সি+" ? "bg-yellow-500" :
+                                grade === "সি" ? "bg-orange-500" :
+                                grade === "ডি" ? "bg-red-500" :
+                                "bg-rose-500"
+                              }`}
+                              style={{
+                                width: `${(countNum / result.statistics.totalExaminees) * 100}%`,
+                              }}
+                            />
+                            <span className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs font-medium text-gray-700">
+                              {countNum}
+                            </span>
+                          </div>
+                          <span className="text-[10px] sm:text-xs text-gray-500 w-12 sm:w-14 text-right">
+                            {((countNum / result.statistics.totalExaminees) * 100).toFixed(1)}%
                           </span>
                         </div>
-                        <span className="text-[10px] sm:text-xs text-gray-500 w-12 sm:w-14 text-right">
-                          {((count as number / result.statistics.totalExaminees) * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
