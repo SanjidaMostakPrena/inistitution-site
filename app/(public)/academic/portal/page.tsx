@@ -677,39 +677,38 @@ export default function AcademicPage() {
            "bg-gray-100 text-gray-700";
   };
 
-  const getFilteredData = () => {
-    let data = activeTab === "classes" ? classData :
+ const getFilteredData = () => {
+  let data: any = activeTab === "classes" ? classData :
                activeTab === "departments" ? departmentData :
                activeTab === "curriculum" ? curriculumData :
                activeTab === "routine" ? classRoutines :
                activeTab === "exam" ? examRoutines :
                activeTab === "syllabus" ? syllabus :
                activeTab === "activities" ? academicActivities : [];
-    
-    if (selectedFilter !== "all" && activeTab !== "syllabus" && activeTab !== "classes" && activeTab !== "departments") {
-      data = data.filter((item: any) => item.type === selectedFilter);
-    }
-    if (selectedFilter !== "all" && activeTab === "classes") {
-      data = data.filter((item: any) => item.level === selectedFilter);
-    }
-    if (selectedFilter !== "all" && activeTab === "departments") {
-      data = data.filter((item: any) => item.name.includes(selectedFilter));
-    }
-    if (searchTerm) {
-      data = data.filter((item: any) => 
-        (item.class && item.class.includes(searchTerm)) ||
-        (item.exam && item.exam.includes(searchTerm)) ||
-        (item.subject && item.subject.includes(searchTerm)) ||
-        (item.title && item.title.includes(searchTerm)) ||
-        (item.status && item.status.includes(searchTerm)) ||
-        (item.name && item.name.includes(searchTerm)) ||
-        (item.level && item.level.includes(searchTerm)) ||
-        (item.stream && item.stream.includes(searchTerm))
-      );
-    }
-    return data;
-  };
-
+  
+  if (selectedFilter !== "all" && activeTab !== "syllabus" && activeTab !== "classes" && activeTab !== "departments") {
+    data = data.filter((item: any) => item.type === selectedFilter);
+  }
+  if (selectedFilter !== "all" && activeTab === "classes") {
+    data = data.filter((item: any) => item.level === selectedFilter);
+  }
+  if (selectedFilter !== "all" && activeTab === "departments") {
+    data = data.filter((item: any) => item.name.includes(selectedFilter));
+  }
+  if (searchTerm) {
+    data = data.filter((item: any) => 
+      (item.class && item.class.includes(searchTerm)) ||
+      (item.exam && item.exam.includes(searchTerm)) ||
+      (item.subject && item.subject.includes(searchTerm)) ||
+      (item.title && item.title.includes(searchTerm)) ||
+      (item.status && item.status.includes(searchTerm)) ||
+      (item.name && item.name.includes(searchTerm)) ||
+      (item.level && item.level.includes(searchTerm)) ||
+      (item.stream && item.stream.includes(searchTerm))
+    );
+  }
+  return data;
+};
   const renderCalendar = () => {
     const days = [];
     const totalDays = daysInMonth;
