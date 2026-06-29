@@ -119,17 +119,17 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
     @apply bg-background text-foreground;
-    }
+  }
   html {
     @apply font-sans;
-    }
+  }
 }
+
 /* ===== GLOBAL TRANSITIONS & ANIMATIONS ===== */
 
-/* Base transition for all interactive elements */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -141,12 +141,10 @@
     @apply font-sans;
   }
   
-  /* Global transition for interactive elements */
   a, button, .transition-all {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
-  /* Smooth hover transitions */
   .hover-lift {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -411,4 +409,56 @@
 
 .clip-path-hexagon {
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* ===== THEME COLOR VARIABLES ===== */
+:root {
+  --primary: #10b981;
+  --primary-light: #34d399;
+  --primary-dark: #059669;
+}
+[data-theme="blue"] {
+  --primary: #3b82f6;
+  --primary-light: #60a5fa;
+  --primary-dark: #2563eb;
+}
+[data-theme="purple"] {
+  --primary: #8b5cf6;
+  --primary-light: #a78bfa;
+  --primary-dark: #7c3aed;
+}
+[data-theme="red"] {
+  --primary: #ef4444;
+  --primary-light: #f87171;
+  --primary-dark: #dc2626;
+}
+[data-theme="orange"] {
+  --primary: #f59e0b;
+  --primary-light: #fbbf24;
+  --primary-dark: #d97706;
+}
+
+/* ===== SHORT ANIMATIONS (Dropdowns etc.) ===== */
+@keyframes fadeInUpShort {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  /* এই ক্লাসটি ইতিমধ্যে উপরে ডিফাইন করা আছে, তাই এখানে আর ডিফাইন করছি না */
+}
+
+/* ড্রপডাউনের জন্য */
+.animate-fade-in {
+  animation: fadeInUpShort 0.2s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
 }

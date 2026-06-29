@@ -305,13 +305,7 @@ export default function NoticesPage() {
               <p className="text-xs sm:text-sm text-gray-500">
                 <span className="font-semibold text-slate-800">{filteredNotices.length}</span> টি নোটিশ দেখানো হচ্ছে
               </p>
-              <button
-                onClick={() => setSearchTerm("")}
-                className="text-xs sm:text-sm text-green-600 hover:text-green-700 font-medium flex items-center gap-1 hover:gap-2 transition-all"
-              >
-                <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                সব করুন
-              </button>
+              
             </div>
 
             {filteredNotices.length === 0 ? (

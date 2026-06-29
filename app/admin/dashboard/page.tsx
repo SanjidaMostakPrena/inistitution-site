@@ -1,8 +1,8 @@
 
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   LayoutDashboard,
   School,
@@ -40,9 +40,17 @@ import {
   Printer,
   Share2,
   Info,
-} from "lucide-react"
+  Sun,
+  Moon,
+} from "lucide-react";
 
-// ===== MOCK DATA (বর্ধিত) =====
+// ===== HELPER: ইংরেজি সংখ্যা → বাংলা সংখ্যা =====
+const toBanglaNumber = (num: number | string): string => {
+  const banglaDigits = "০১২৩৪৫৬৭৮৯";
+  return num.toString().replace(/\d/g, (digit) => banglaDigits[parseInt(digit)]);
+};
+
+// ===== MOCK DATA =====
 const statsData = {
   totalClasses: 16,
   totalStudents: 4500,
@@ -50,9 +58,8 @@ const statsData = {
   totalNotices: 8,
   totalResults: 11,
   totalApplications: 24,
-}
+};
 
-// ৯টি কার্যক্রম (আগে ছিল ৫, যোগ করলাম ৪টি)
 const recentActivities = [
   {
     id: 1,
@@ -104,7 +111,6 @@ const recentActivities = [
     details:
       "মিসেস ফরিদা বেগম বিজ্ঞান বিভাগে শিক্ষক হিসেবে যোগদান করেছেন। তিনি রাজশাহী বিশ্ববিদ্যালয় থেকে এমএসসি করেছেন।",
   },
-  // অতিরিক্ত ৪টি কার্যক্রম
   {
     id: 6,
     type: "student",
@@ -145,9 +151,8 @@ const recentActivities = [
     details:
       "সকল শিক্ষকের জন্য 'আধুনিক শিক্ষা পদ্ধতি' বিষয়ক প্রশিক্ষণ কর্মশালা অনুষ্ঠিত হয়েছে।",
   },
-]
+];
 
-// ৬টি ইভেন্ট (আগে ছিল ৩, যোগ করলাম ৩টি)
 const upcomingEvents = [
   {
     id: 1,
@@ -176,7 +181,6 @@ const upcomingEvents = [
     description:
       "বার্ষিক ক্রীড়া প্রতিযোগিতায় শিক্ষার্থীরা বিভিন্ন ইভেন্টে অংশগ্রহণ করবে। পুরস্কার বিতরণী অনুষ্ঠান থাকবে।",
   },
-  // অতিরিক্ত ৩টি ইভেন্ট
   {
     id: 4,
     title: "বিজ্ঞান মেলা ২০২৬",
@@ -204,9 +208,8 @@ const upcomingEvents = [
     description:
       "বাংলা নববর্ষ ১৪৩২ উপলক্ষে সাংস্কৃতিক অনুষ্ঠান ও মঙ্গল শোভাযাত্রা।",
   },
-]
+];
 
-// শ্রেণী পারফরম্যান্স (অপরিবর্তিত)
 const classPerformance = [
   {
     name: "প্রাথমিক",
@@ -251,9 +254,8 @@ const classPerformance = [
     ],
     passRates: [93, 91, 92, 94, 90, 93, 92],
   },
-]
+];
 
-// ৮টি আবেদন (আগে ছিল ৪, যোগ করলাম ৪টি)
 const recentApplications = [
   {
     id: 1,
@@ -295,7 +297,6 @@ const recentApplications = [
     mother: "মরিয়ম খাতুন",
     contact: "০১৭৫৪৩২১০৯৮",
   },
-  // অতিরিক্ত ৪টি আবেদন
   {
     id: 5,
     name: "আব্দুল্লাহ আল-মামুন",
@@ -336,51 +337,75 @@ const recentApplications = [
     mother: "রহিমা খাতুন",
     contact: "০১৭৪৪৫৫৬৬৭৭",
   },
-]
+];
 
-// ===== HELPER =====
 const getStatusColor = (status: string) => {
   switch (status) {
     case "pending":
-      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
     case "approved":
-      return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+      return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
     case "rejected":
-      return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+      return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
     default:
-      return "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+      return "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
   }
-}
+};
 
 export default function AdminDashboard() {
-  const [greeting, setGreeting] = useState("")
-  const [currentTime, setCurrentTime] = useState("")
+  const [greeting, setGreeting] = useState("");
+  const [currentTime, setCurrentTime] = useState("");
   const [showToast, setShowToast] = useState<{
-    message: string
-    type: "success" | "info" | "error"
-  } | null>(null)
-  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null)
-
-  // State for "Show All" toggles
-  const [showAllActivities, setShowAllActivities] = useState(false)
-  const [showAllEvents, setShowAllEvents] = useState(false)
-  const [showAllApplications, setShowAllApplications] = useState(false)
-
-  // Modal states
-  const [detailModalOpen, setDetailModalOpen] = useState(false)
-  const [detailModalData, setDetailModalData] = useState<any>(null)
+    message: string;
+    type: "success" | "info" | "error";
+  } | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+  const [showAllActivities, setShowAllActivities] = useState(false);
+  const [showAllEvents, setShowAllEvents] = useState(false);
+  const [showAllApplications, setShowAllApplications] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [detailModalData, setDetailModalData] = useState<any>(null);
   const [detailModalType, setDetailModalType] = useState<
     "activity" | "event" | "class" | "application"
-  >("activity")
-  const [settingsModalOpen, setSettingsModalOpen] = useState(false)
+  >("activity");
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+
+  // ===== Dark/Light Mode State (sync with header) =====
+  const [isDark, setIsDark] = useState(false);
+
+  // Load dark mode preference from localStorage (same as header)
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDark(true);
+      document.documentElement.classList.add("dark");
+    } else {
+      setIsDark(false);
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  // Toggle dark mode (same logic as header)
+  const toggleDarkMode = () => {
+    const newDark = !isDark;
+    setIsDark(newDark);
+    if (newDark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
+  // ======================================================
 
   useEffect(() => {
-    const hour = new Date().getHours()
-    if (hour < 12) setGreeting("শুভ সকাল")
-    else if (hour < 18) setGreeting("শুভ বিকেল")
-    else setGreeting("শুভ সন্ধ্যা")
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("শুভ সকাল");
+    else if (hour < 18) setGreeting("শুভ বিকেল");
+    else setGreeting("শুভ সন্ধ্যা");
 
-    const now = new Date()
+    const now = new Date();
     setCurrentTime(
       now.toLocaleString("bn-BD", {
         weekday: "long",
@@ -390,80 +415,76 @@ export default function AdminDashboard() {
         hour: "2-digit",
         minute: "2-digit",
       })
-    )
-  }, [])
+    );
+  }, []);
 
-  const totalStudents = statsData.totalStudents
-  const totalPassed = Math.round(totalStudents * 0.94)
-  const overallPassRate = `${Math.round((totalPassed / totalStudents) * 100)}%`
+  const totalStudents = statsData.totalStudents;
+  const totalPassed = Math.round(totalStudents * 0.94);
+  const overallPassRate = `${Math.round((totalPassed / totalStudents) * 100)}`;
 
-  // Handlers
   const handleRefresh = () => {
-    setShowToast({ message: "ড্যাশবোর্ড রিফ্রেশ করা হয়েছে", type: "success" })
-    setTimeout(() => setShowToast(null), 3000)
-  }
+    setShowToast({ message: "ড্যাশবোর্ড রিফ্রেশ করা হয়েছে", type: "success" });
+    setTimeout(() => setShowToast(null), 3000);
+  };
 
   const handleDownload = () => {
-    setShowToast({ message: "রিপোর্ট ডাউনলোড শুরু হয়েছে", type: "info" })
-    setTimeout(() => setShowToast(null), 3000)
-  }
+    setShowToast({ message: "রিপোর্ট ডাউনলোড শুরু হয়েছে", type: "info" });
+    setTimeout(() => setShowToast(null), 3000);
+  };
 
   const handleSettings = () => {
-    setSettingsModalOpen(true)
-  }
+    setSettingsModalOpen(true);
+  };
 
   const closeSettingsModal = () => {
-    setSettingsModalOpen(false)
-  }
+    setSettingsModalOpen(false);
+  };
 
   const handleMoreAction = (id: number, action: string) => {
-    setDropdownOpen(null)
+    setDropdownOpen(null);
     if (action === "বিস্তারিত") {
-      const activity = recentActivities.find((a) => a.id === id)
+      const activity = recentActivities.find((a) => a.id === id);
       if (activity) {
-        setDetailModalData(activity)
-        setDetailModalType("activity")
-        setDetailModalOpen(true)
-        return
+        setDetailModalData(activity);
+        setDetailModalType("activity");
+        setDetailModalOpen(true);
+        return;
       }
     }
-    setShowToast({ message: `"${action}" একশন নেওয়া হয়েছে`, type: "success" })
-    setTimeout(() => setShowToast(null), 3000)
-  }
+    setShowToast({ message: `"${action}" একশন নেওয়া হয়েছে`, type: "success" });
+    setTimeout(() => setShowToast(null), 3000);
+  };
 
   const toggleDropdown = (id: number) => {
-    setDropdownOpen(dropdownOpen === id ? null : id)
-  }
+    setDropdownOpen(dropdownOpen === id ? null : id);
+  };
 
   const openDetailModal = (
     data: any,
     type: "activity" | "event" | "class" | "application"
   ) => {
-    setDetailModalData(data)
-    setDetailModalType(type)
-    setDetailModalOpen(true)
-  }
+    setDetailModalData(data);
+    setDetailModalType(type);
+    setDetailModalOpen(true);
+  };
 
-  // Toggle show all
-  const toggleShowAllActivities = () => setShowAllActivities(!showAllActivities)
-  const toggleShowAllEvents = () => setShowAllEvents(!showAllEvents)
+  const toggleShowAllActivities = () => setShowAllActivities(!showAllActivities);
+  const toggleShowAllEvents = () => setShowAllEvents(!showAllEvents);
   const toggleShowAllApplications = () =>
-    setShowAllApplications(!showAllApplications)
+    setShowAllApplications(!showAllApplications);
 
-  // Determine which items to show
   const displayedActivities = showAllActivities
     ? recentActivities
-    : recentActivities.slice(0, 5)
+    : recentActivities.slice(0, 5);
   const displayedEvents = showAllEvents
     ? upcomingEvents
-    : upcomingEvents.slice(0, 3)
+    : upcomingEvents.slice(0, 3);
   const displayedApplications = showAllApplications
     ? recentApplications
-    : recentApplications.slice(0, 4)
+    : recentApplications.slice(0, 4);
 
-  // Render detail content
   const renderDetailContent = () => {
-    if (!detailModalData) return null
+    if (!detailModalData) return null;
     if (detailModalType === "activity") {
       return (
         <div className="space-y-3">
@@ -471,7 +492,7 @@ export default function AdminDashboard() {
           <p className="text-gray-700">{detailModalData.details}</p>
           <p className="text-xs text-gray-400">সময়: {detailModalData.time}</p>
         </div>
-      )
+      );
     } else if (detailModalType === "event") {
       return (
         <div className="space-y-3">
@@ -481,18 +502,16 @@ export default function AdminDashboard() {
             তারিখ: {detailModalData.date} • সময়: {detailModalData.time}
           </p>
         </div>
-      )
+      );
     } else if (detailModalType === "class") {
       return (
         <div className="space-y-3">
-          <p className="text-sm text-gray-500">
-            শ্রেণীর বিস্তারিত পারফরম্যান্স
+          <p className="text-sm text-gray-500">শ্রেণীর বিস্তারিত পারফরম্যান্স</p>
+          <p className="font-semibold">
+            শিক্ষার্থী: {toBanglaNumber(detailModalData.students)} জন
           </p>
           <p className="font-semibold">
-            শিক্ষার্থী: {detailModalData.students} জন
-          </p>
-          <p className="font-semibold">
-            পাসের হার: {detailModalData.passRate}%
+            পাসের হার: {toBanglaNumber(detailModalData.passRate)}%
           </p>
           <div className="mt-2">
             <p className="text-sm font-medium">বিষয়ভিত্তিক ফলাফল:</p>
@@ -507,14 +526,14 @@ export default function AdminDashboard() {
                     />
                   </div>
                   <span className="text-xs font-medium">
-                    {detailModalData.passRates[idx]}%
+                    {toBanglaNumber(detailModalData.passRates[idx])}%
                   </span>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      )
+      );
     } else if (detailModalType === "application") {
       return (
         <div className="space-y-3">
@@ -551,13 +570,13 @@ export default function AdminDashboard() {
             </span>
           </p>
         </div>
-      )
+      );
     }
-    return null
-  }
+    return null;
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 transition-colors duration-300 dark:bg-gray-900">
+    <div className="min-h-screen  transition-colors duration-300 dark:bg-gray-900">
       {/* Toast Notification */}
       {showToast && (
         <div className="animate-fade-in-up fixed right-6 bottom-6 z-50">
@@ -586,7 +605,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Settings Modal */}
+      {/* Settings Modal with working Dark Mode toggle */}
       {settingsModalOpen && (
         <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="animate-scale-in w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-800">
@@ -607,8 +626,12 @@ export default function AdminDashboard() {
                 <span className="text-sm text-gray-700 dark:text-gray-300">
                   ডার্ক মোড
                 </span>
-                <button className="rounded-lg bg-green-100 px-3 py-1 text-sm font-medium text-green-700 transition-colors hover:bg-green-200">
-                  টগল করুন
+                <button
+                  onClick={toggleDarkMode}
+                  className="flex items-center gap-2 rounded-lg bg-green-100 px-3 py-1 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400"
+                >
+                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  {isDark ? "লাইটে যান" : "ডার্কে যান"}
                 </button>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-gray-50 p-3 dark:bg-gray-700/50">
@@ -711,9 +734,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Stats Grid (Same as before, unchanged) */}
+      {/* Stats Grid - সব সংখ্যা বাংলায় */}
       <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-        {/* ... (keep as before) ... */}
         <div className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
@@ -721,7 +743,7 @@ export default function AdminDashboard() {
                 শ্রেণী
               </p>
               <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-white">
-                {statsData.totalClasses}
+                {toBanglaNumber(statsData.totalClasses)}
               </p>
             </div>
             <div className="rounded-xl bg-blue-50 p-3 transition-transform duration-300 group-hover:scale-110 dark:bg-blue-900/30">
@@ -729,7 +751,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-            <ArrowUpRight className="h-3 w-3" /> <span>গত মাসে +২</span>
+            <ArrowUpRight className="h-3 w-3" /> <span>গত মাসে +{toBanglaNumber(2)}</span>
           </div>
         </div>
         <div className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
@@ -739,7 +761,7 @@ export default function AdminDashboard() {
                 শিক্ষার্থী
               </p>
               <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-white">
-                {statsData.totalStudents}
+                {toBanglaNumber(statsData.totalStudents)}
               </p>
             </div>
             <div className="rounded-xl bg-green-50 p-3 transition-transform duration-300 group-hover:scale-110 dark:bg-green-900/30">
@@ -747,7 +769,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-            <ArrowUpRight className="h-3 w-3" /> <span>গত মাসে +১৫</span>
+            <ArrowUpRight className="h-3 w-3" /> <span>গত মাসে +{toBanglaNumber(15)}</span>
           </div>
         </div>
         <div className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
@@ -757,7 +779,7 @@ export default function AdminDashboard() {
                 শিক্ষক
               </p>
               <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-white">
-                {statsData.totalTeachers}
+                {toBanglaNumber(statsData.totalTeachers)}
               </p>
             </div>
             <div className="rounded-xl bg-purple-50 p-3 transition-transform duration-300 group-hover:scale-110 dark:bg-purple-900/30">
@@ -765,7 +787,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-            <ArrowUpRight className="h-3 w-3" /> <span>গত মাসে +৩</span>
+            <ArrowUpRight className="h-3 w-3" /> <span>গত মাসে +{toBanglaNumber(3)}</span>
           </div>
         </div>
         <div className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
@@ -775,7 +797,7 @@ export default function AdminDashboard() {
                 নোটিশ
               </p>
               <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-white">
-                {statsData.totalNotices}
+                {toBanglaNumber(statsData.totalNotices)}
               </p>
             </div>
             <div className="rounded-xl bg-orange-50 p-3 transition-transform duration-300 group-hover:scale-110 dark:bg-orange-900/30">
@@ -783,7 +805,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-            <ArrowUpRight className="h-3 w-3" /> <span>গত সপ্তাহে +৩</span>
+            <ArrowUpRight className="h-3 w-3" /> <span>গত সপ্তাহে +{toBanglaNumber(3)}</span>
           </div>
         </div>
         <div className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
@@ -793,7 +815,7 @@ export default function AdminDashboard() {
                 ফলাফল
               </p>
               <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-white">
-                {statsData.totalResults}
+                {toBanglaNumber(statsData.totalResults)}
               </p>
             </div>
             <div className="rounded-xl bg-red-50 p-3 transition-transform duration-300 group-hover:scale-110 dark:bg-red-900/30">
@@ -801,7 +823,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-            <ArrowUpRight className="h-3 w-3" /> <span>গত মাসে +৪</span>
+            <ArrowUpRight className="h-3 w-3" /> <span>গত মাসে +{toBanglaNumber(4)}</span>
           </div>
         </div>
         <div className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
@@ -811,7 +833,7 @@ export default function AdminDashboard() {
                 আবেদন
               </p>
               <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-white">
-                {statsData.totalApplications}
+                {toBanglaNumber(statsData.totalApplications)}
               </p>
             </div>
             <div className="rounded-xl bg-indigo-50 p-3 transition-transform duration-300 group-hover:scale-110 dark:bg-indigo-900/30">
@@ -819,14 +841,13 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="mt-2 flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
-            <ArrowUpRight className="h-3 w-3" /> <span>বিচারাধীন: ১২</span>
+            <ArrowUpRight className="h-3 w-3" /> <span>বিচারাধীন: {toBanglaNumber(12)}</span>
           </div>
         </div>
       </div>
 
-      {/* Charts & Performance */}
+      {/* Charts & Performance - বার এবং সংখ্যা বাংলায় */}
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Class-wise Performance */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg lg:col-span-2 dark:border-gray-700 dark:bg-gray-800">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-white">
@@ -850,10 +871,10 @@ export default function AdminDashboard() {
                   />
                 </div>
                 <span className="min-w-[50px] text-right text-sm font-semibold text-slate-800 dark:text-white">
-                  {item.passRate}%
+                  {toBanglaNumber(item.passRate)}%
                 </span>
                 <span className="min-w-[60px] text-xs text-gray-400 dark:text-gray-500">
-                  {item.students} জন
+                  {toBanglaNumber(item.students)} জন
                 </span>
                 <button
                   onClick={() => openDetailModal(item, "class")}
@@ -867,7 +888,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Quick Stats */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-white">
             <PieChart className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -879,7 +899,7 @@ export default function AdminDashboard() {
                 মোট শিক্ষার্থী
               </span>
               <span className="text-lg font-bold text-green-700 dark:text-green-400">
-                {statsData.totalStudents}
+                {toBanglaNumber(statsData.totalStudents)}
               </span>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-blue-50 p-3 dark:bg-blue-900/20">
@@ -887,7 +907,7 @@ export default function AdminDashboard() {
                 মোট উত্তীর্ণ
               </span>
               <span className="text-lg font-bold text-blue-700 dark:text-blue-400">
-                {totalPassed}
+                {toBanglaNumber(totalPassed)}
               </span>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-yellow-50 p-3 dark:bg-yellow-900/20">
@@ -895,7 +915,7 @@ export default function AdminDashboard() {
                 উত্তীর্ণের হার
               </span>
               <span className="text-lg font-bold text-yellow-700 dark:text-yellow-400">
-                {overallPassRate}
+                {toBanglaNumber(overallPassRate)}%
               </span>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-purple-50 p-3 dark:bg-purple-900/20">
@@ -903,10 +923,7 @@ export default function AdminDashboard() {
                 পেন্ডিং আবেদন
               </span>
               <span className="text-lg font-bold text-purple-700 dark:text-purple-400">
-                {
-                  recentApplications.filter((a) => a.status === "pending")
-                    .length
-                }
+                {toBanglaNumber(recentApplications.filter((a) => a.status === "pending").length)}
               </span>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-red-50 p-3 dark:bg-red-900/20">
@@ -914,7 +931,7 @@ export default function AdminDashboard() {
                 আজকের ইভেন্ট
               </span>
               <span className="text-lg font-bold text-red-700 dark:text-red-400">
-                {upcomingEvents.length}
+                {toBanglaNumber(upcomingEvents.length)}
               </span>
             </div>
           </div>
@@ -923,7 +940,6 @@ export default function AdminDashboard() {
 
       {/* Recent Activity & Upcoming Events */}
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Recent Activity with "সব দেখুন" toggle */}
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-white">
@@ -999,9 +1015,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Upcoming Events & Quick Actions */}
         <div className="space-y-6">
-          {/* Upcoming Events with "সব দেখুন" toggle */}
           <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-white">
@@ -1058,7 +1072,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Quick Actions */}
           <div className="rounded-2xl border border-gray-100 bg-gradient-to-br from-green-50 to-red-50 p-6 shadow-sm transition-all duration-300 hover:shadow-lg dark:border-gray-700 dark:from-green-900/20 dark:to-red-900/20">
             <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-white">
               <Zap className="h-5 w-5 text-yellow-500 dark:text-yellow-400" />
@@ -1106,7 +1119,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Recent Applications Table with "সব দেখুন" toggle */}
+      {/* Recent Applications Table - তারিখের সংখ্যা বাংলায় */}
       <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-white">
@@ -1155,7 +1168,8 @@ export default function AdminDashboard() {
                     {app.class}
                   </td>
                   <td className="px-4 py-3 text-slate-700 dark:text-gray-300">
-                    {app.date}
+                    {/* তারিখের সংখ্যা বাংলায় কনভার্ট */}
+                    {app.date.replace(/\d/g, (d) => toBanglaNumber(parseInt(d)))}
                   </td>
                   <td className="px-4 py-3">
                     <span
@@ -1182,5 +1196,5 @@ export default function AdminDashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

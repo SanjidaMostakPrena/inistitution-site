@@ -76,10 +76,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           />
         </header>
 
-        {/* পেজ কন্টেন্ট (স্ক্রলযোগ্য) – added min-h-0 for proper scroll */}
-        <main className="flex-1 overflow-y-auto min-h-0 p-4 md:p-6">
-          {children}
-        </main>
+      <main className="flex-1 overflow-y-auto min-h-0 p-4 md:p-6 bg-green-40 dark:bg-gray-900">
+  {children}
+</main>
       </div>
     </div>
   );

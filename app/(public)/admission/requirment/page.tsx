@@ -472,20 +472,7 @@ export default function AdmissionPage() {
                 মানসম্মত শিক্ষার আপনার প্রবেশদ্বার। ভর্তির প্রয়োজনীয়তা, যোগ্যতা ও নির্দেশিকা সম্পর্কে জানুন।
               </p>
             </div>
-            <div className="flex flex-wrap gap-2 sm:gap-3 animate-fade-in-up animation-delay-300">
-              <div className="bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-center hover:bg-white/30 transition-all duration-300">
-                <div className="text-[10px] sm:text-xs text-white/80">আবেদন চলমান</div>
-                <div className="font-semibold text-sm sm:text-base lg:text-lg">জানুয়ারি ২০২৬</div>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-center hover:bg-white/30 transition-all duration-300">
-                <div className="text-[10px] sm:text-xs text-white/80">ভর্তি পরীক্ষা</div>
-                <div className="font-semibold text-sm sm:text-base lg:text-lg">ফেব্রুয়ারি ২০২৬</div>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-center hover:bg-white/30 transition-all duration-300">
-                <div className="text-[10px] sm:text-xs text-white/80">ক্লাস শুরু</div>
-                <div className="font-semibold text-sm sm:text-base lg:text-lg">মার্চ ২০২৬</div>
-              </div>
-            </div>
+          
           </div>
         </div>
       </section>

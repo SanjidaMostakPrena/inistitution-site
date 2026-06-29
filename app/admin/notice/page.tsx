@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -16,7 +17,6 @@ import {
   Eye,
   Edit,
   Trash2,
-  ChevronRight,
   Download,
   Printer,
   Share2,
@@ -26,12 +26,15 @@ import {
   AlertCircle,
   Save,
   RefreshCw,
-  Filter,
   Grid,
   List,
-  ArrowUpRight,
-  ArrowDownRight,
 } from "lucide-react";
+
+// ===== HELPER: বাংলা সংখ্যা =====
+const toBanglaNumber = (num: number | string): string => {
+  const banglaDigits = "০১২৩৪৫৬৭৮৯";
+  return num.toString().replace(/\d/g, (digit) => banglaDigits[parseInt(digit)]);
+};
 
 // ===== INITIAL DATA =====
 const initialNotices = [
@@ -187,20 +190,20 @@ const getPriorityLabel = (priority: string) => {
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
-    case "high": return "bg-red-100 text-red-700";
-    case "medium": return "bg-yellow-100 text-yellow-700";
-    case "low": return "bg-green-100 text-green-700";
-    default: return "bg-gray-100 text-gray-700";
+    case "high": return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+    case "medium": return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+    case "low": return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+    default: return "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
   }
 };
 
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case "circular": return "bg-blue-100 text-blue-700 border-blue-200";
-    case "schedule": return "bg-purple-100 text-purple-700 border-purple-200";
-    case "announcement": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-    case "result": return "bg-red-100 text-red-700 border-red-200";
-    default: return "bg-gray-100 text-gray-700 border-gray-200";
+    case "circular": return "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700";
+    case "schedule": return "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700";
+    case "announcement": return "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-700";
+    case "result": return "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-700";
+    default: return "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600";
   }
 };
 
@@ -216,6 +219,21 @@ const getCategoryIcon = (category: string) => {
 
 // ===== MAIN COMPONENT =====
 export default function AdminNotices() {
+  // ===== Dark/Light Mode Sync (same as header) =====
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDark(true);
+      document.documentElement.classList.add("dark");
+    } else {
+      setIsDark(false);
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+  // ===================================================
+
   const [notices, setNotices] = useState(initialNotices);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
@@ -231,7 +249,7 @@ export default function AdminNotices() {
   const [editFormData, setEditFormData] = useState<any>({});
   const [addFormData, setAddFormData] = useState<any>({});
 
-  // Stats
+  // Stats (with Bangla numbers)
   const total = notices.length;
   const circulars = notices.filter(n => n.category === "circular").length;
   const schedules = notices.filter(n => n.category === "schedule").length;
@@ -324,7 +342,7 @@ export default function AdminNotices() {
     if (!selectedNotice) return null;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in">
           <div className={`bg-gradient-to-r ${selectedNotice.color} p-6 sticky top-0 z-10`}>
             <div className="flex items-start justify-between text-white">
               <div className="flex items-center gap-3">
@@ -349,14 +367,14 @@ export default function AdminNotices() {
             </div>
           </div>
           <div className="p-6">
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4 pb-4 border-b border-gray-100">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
               <span className="flex items-center gap-1"><Calendar className="h-4 w-4" /> {selectedNotice.date}</span>
               <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> {selectedNotice.time}</span>
-              <span className="flex items-center gap-1"><Eye className="h-4 w-4" /> {selectedNotice.views} বার দেখা</span>
+              <span className="flex items-center gap-1"><Eye className="h-4 w-4" /> {toBanglaNumber(selectedNotice.views)} বার দেখা</span>
               <span className="flex items-center gap-1"><User className="h-4 w-4" /> {selectedNotice.author}</span>
             </div>
-            <p className="text-gray-700 whitespace-pre-line">{selectedNotice.content}</p>
-            <div className="mt-6 pt-4 border-t border-gray-100 flex flex-wrap gap-3">
+            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{selectedNotice.content}</p>
+            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-wrap gap-3">
               <button className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-green-700 transition-colors hover:scale-105">
                 <Download className="h-4 w-4" /> ডাউনলোড
               </button>
@@ -382,24 +400,24 @@ export default function AdminNotices() {
     };
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 animate-scale-in">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 animate-scale-in">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
               <Edit className="h-5 w-5 text-green-600" /> নোটিশ সম্পাদনা
             </h3>
-            <button onClick={() => setEditModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
-              <X className="h-6 w-6 text-gray-400" />
+            <button onClick={() => setEditModalOpen(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <X className="h-6 w-6 text-gray-400 dark:text-gray-500" />
             </button>
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">শিরোনাম</label>
-              <input name="title" value={editFormData.title || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">শিরোনাম</label>
+              <input name="title" value={editFormData.title || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">ক্যাটাগরি</label>
-                <select name="category" value={editFormData.category || "circular"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ক্যাটাগরি</label>
+                <select name="category" value={editFormData.category || "circular"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <option value="circular">বিজ্ঞপ্তি</option>
                   <option value="schedule">সময়সূচী</option>
                   <option value="announcement">ঘোষণা</option>
@@ -407,8 +425,8 @@ export default function AdminNotices() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">অগ্রাধিকার</label>
-                <select name="priority" value={editFormData.priority || "medium"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">অগ্রাধিকার</label>
+                <select name="priority" value={editFormData.priority || "medium"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <option value="high">উচ্চ</option>
                   <option value="medium">মাঝারি</option>
                   <option value="low">নিম্ন</option>
@@ -417,29 +435,29 @@ export default function AdminNotices() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">তারিখ</label>
-                <input type="date" name="date" value={editFormData.date || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">তারিখ</label>
+                <input type="date" name="date" value={editFormData.date || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">সময়</label>
-                <input type="time" name="time" value={editFormData.time || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">সময়</label>
+                <input type="time" name="time" value={editFormData.time || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">লেখক</label>
-              <input name="author" value={editFormData.author || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">লেখক</label>
+              <input name="author" value={editFormData.author || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">সারাংশ</label>
-              <textarea name="excerpt" rows={2} value={editFormData.excerpt || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">সারাংশ</label>
+              <textarea name="excerpt" rows={2} value={editFormData.excerpt || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">বিবরণ</label>
-              <textarea name="content" rows={4} value={editFormData.content || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">বিবরণ</label>
+              <textarea name="content" rows={4} value={editFormData.content || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">ভিউ</label>
-              <input type="number" name="views" value={editFormData.views || 0} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ভিউ</label>
+              <input type="number" name="views" value={editFormData.views || 0} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
           </div>
           <button onClick={handleEditSave} className="mt-4 w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2.5 rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center gap-2">
@@ -458,24 +476,24 @@ export default function AdminNotices() {
     };
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 animate-scale-in">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 animate-scale-in">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
               <Plus className="h-5 w-5 text-green-600" /> নতুন নোটিশ
             </h3>
-            <button onClick={() => setAddModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
-              <X className="h-6 w-6 text-gray-400" />
+            <button onClick={() => setAddModalOpen(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <X className="h-6 w-6 text-gray-400 dark:text-gray-500" />
             </button>
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">শিরোনাম</label>
-              <input name="title" value={addFormData.title || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">শিরোনাম</label>
+              <input name="title" value={addFormData.title || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">ক্যাটাগরি</label>
-                <select name="category" value={addFormData.category || "circular"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ক্যাটাগরি</label>
+                <select name="category" value={addFormData.category || "circular"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <option value="circular">বিজ্ঞপ্তি</option>
                   <option value="schedule">সময়সূচী</option>
                   <option value="announcement">ঘোষণা</option>
@@ -483,8 +501,8 @@ export default function AdminNotices() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">অগ্রাধিকার</label>
-                <select name="priority" value={addFormData.priority || "medium"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">অগ্রাধিকার</label>
+                <select name="priority" value={addFormData.priority || "medium"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <option value="high">উচ্চ</option>
                   <option value="medium">মাঝারি</option>
                   <option value="low">নিম্ন</option>
@@ -493,25 +511,25 @@ export default function AdminNotices() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">তারিখ</label>
-                <input type="date" name="date" value={addFormData.date || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">তারিখ</label>
+                <input type="date" name="date" value={addFormData.date || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">সময়</label>
-                <input type="time" name="time" value={addFormData.time || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">সময়</label>
+                <input type="time" name="time" value={addFormData.time || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">লেখক</label>
-              <input name="author" value={addFormData.author || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">লেখক</label>
+              <input name="author" value={addFormData.author || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">সারাংশ</label>
-              <textarea name="excerpt" rows={2} value={addFormData.excerpt || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">সারাংশ</label>
+              <textarea name="excerpt" rows={2} value={addFormData.excerpt || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">বিবরণ</label>
-              <textarea name="content" rows={4} value={addFormData.content || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">বিবরণ</label>
+              <textarea name="content" rows={4} value={addFormData.content || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
           </div>
           <button onClick={handleAddSave} className="mt-4 w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2.5 rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center gap-2">
@@ -527,17 +545,17 @@ export default function AdminNotices() {
     if (!selectedNotice) return null;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-scale-in">
-          <div className="flex items-center gap-3 text-red-600 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-scale-in">
+          <div className="flex items-center gap-3 text-red-600 dark:text-red-400 mb-4">
             <AlertCircle className="h-8 w-8" />
             <h3 className="text-xl font-bold">নিশ্চিত করুন</h3>
           </div>
-          <p className="text-gray-600 mb-6">
-            আপনি কি <span className="font-semibold text-slate-800">{selectedNotice.title}</span> ডিলিট করতে চান?
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            আপনি কি <span className="font-semibold text-slate-800 dark:text-white">{selectedNotice.title}</span> ডিলিট করতে চান?
             এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।
           </p>
           <div className="flex gap-3">
-            <button onClick={() => setDeleteModalOpen(false)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+            <button onClick={() => setDeleteModalOpen(false)} className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
               বাতিল
             </button>
             <button onClick={handleDeleteConfirm} className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors">
@@ -551,79 +569,79 @@ export default function AdminNotices() {
 
   // ===== MAIN RENDER =====
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen  dark:bg-gray-900 transition-colors duration-300">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-              <Megaphone className="h-7 w-7 text-green-600" />
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <Megaphone className="h-7 w-7 text-green-600 dark:text-green-400" />
               নোটিশ ব্যবস্থাপনা
             </h1>
-            <p className="text-gray-500 mt-1">ভর্তি সংক্রান্ত সকল নোটিশ তৈরি, সম্পাদনা ও পরিচালনা করুন</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">ভর্তি সংক্রান্ত সকল নোটিশ তৈরি, সম্পাদনা ও পরিচালনা করুন</p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={openAddModal} className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2.5 rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-all duration-300 hover:scale-105 flex items-center gap-2 shadow-lg">
               <Plus className="h-4 w-4" /> নতুন নোটিশ
             </button>
-            <button className="p-2.5 bg-white rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
-              <RefreshCw className="h-5 w-5 text-gray-600" />
+            <button className="p-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              <RefreshCw className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - All numbers in Bangla */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-gray-500 font-medium">মোট নোটিশ</p><p className="text-2xl font-bold text-slate-800 mt-1">{total}</p></div>
-            <div className="p-3 bg-blue-50 rounded-xl"><Megaphone className="h-6 w-6 text-blue-600" /></div>
+            <div><p className="text-sm text-gray-500 dark:text-gray-400 font-medium">মোট নোটিশ</p><p className="text-2xl font-bold text-slate-800 dark:text-white mt-1">{toBanglaNumber(total)}</p></div>
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl"><Megaphone className="h-6 w-6 text-blue-600 dark:text-blue-400" /></div>
           </div>
         </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-gray-500 font-medium">বিজ্ঞপ্তি</p><p className="text-2xl font-bold text-blue-600 mt-1">{circulars}</p></div>
-            <div className="p-3 bg-blue-50 rounded-xl"><FileText className="h-6 w-6 text-blue-600" /></div>
+            <div><p className="text-sm text-gray-500 dark:text-gray-400 font-medium">বিজ্ঞপ্তি</p><p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{toBanglaNumber(circulars)}</p></div>
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl"><FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" /></div>
           </div>
         </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-gray-500 font-medium">সময়সূচী</p><p className="text-2xl font-bold text-purple-600 mt-1">{schedules}</p></div>
-            <div className="p-3 bg-purple-50 rounded-xl"><Calendar className="h-6 w-6 text-purple-600" /></div>
+            <div><p className="text-sm text-gray-500 dark:text-gray-400 font-medium">সময়সূচী</p><p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{toBanglaNumber(schedules)}</p></div>
+            <div className="p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl"><Calendar className="h-6 w-6 text-purple-600 dark:text-purple-400" /></div>
           </div>
         </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-gray-500 font-medium">ঘোষণা</p><p className="text-2xl font-bold text-yellow-600 mt-1">{announcements}</p></div>
-            <div className="p-3 bg-yellow-50 rounded-xl"><MessageSquare className="h-6 w-6 text-yellow-600" /></div>
+            <div><p className="text-sm text-gray-500 dark:text-gray-400 font-medium">ঘোষণা</p><p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-1">{toBanglaNumber(announcements)}</p></div>
+            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-xl"><MessageSquare className="h-6 w-6 text-yellow-600 dark:text-yellow-400" /></div>
           </div>
         </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-gray-500 font-medium">ফলাফল</p><p className="text-2xl font-bold text-red-600 mt-1">{results}</p></div>
-            <div className="p-3 bg-red-50 rounded-xl"><Award className="h-6 w-6 text-red-600" /></div>
+            <div><p className="text-sm text-gray-500 dark:text-gray-400 font-medium">ফলাফল</p><p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{toBanglaNumber(results)}</p></div>
+            <div className="p-3 bg-red-50 dark:bg-red-900/30 rounded-xl"><Award className="h-6 w-6 text-red-600 dark:text-red-400" /></div>
           </div>
         </div>
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
         <div className="flex flex-wrap gap-3 items-center">
           <div className="flex-1 min-w-[200px] relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="নোটিশ অনুসন্ধান..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
             />
           </div>
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white"
+            className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white dark:bg-gray-700 dark:text-white"
           >
             <option value="all">সকল ক্যাটাগরি</option>
             <option value="circular">বিজ্ঞপ্তি</option>
@@ -634,7 +652,7 @@ export default function AdminNotices() {
           <select
             value={filterPriority}
             onChange={(e) => setFilterPriority(e.target.value)}
-            className="px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white"
+            className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white dark:bg-gray-700 dark:text-white"
           >
             <option value="all">সকল অগ্রাধিকার</option>
             <option value="high">উচ্চ</option>
@@ -643,9 +661,9 @@ export default function AdminNotices() {
           </select>
           <button
             onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-            className="p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-300"
+            className="p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300"
           >
-            {viewMode === "grid" ? <List className="h-5 w-5 text-gray-600" /> : <Grid className="h-5 w-5 text-gray-600" />}
+            {viewMode === "grid" ? <List className="h-5 w-5 text-gray-600 dark:text-gray-400" /> : <Grid className="h-5 w-5 text-gray-600 dark:text-gray-400" />}
           </button>
         </div>
       </div>
@@ -656,7 +674,7 @@ export default function AdminNotices() {
           {filteredNotices.map((notice) => (
             <div
               key={notice.id}
-              className={`bg-white rounded-2xl shadow-sm border-l-4 ${notice.borderColor} hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-transparent p-5`}
+              className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm border-l-4 ${notice.borderColor} hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-transparent dark:border-gray-700 p-5`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
@@ -672,41 +690,41 @@ export default function AdminNotices() {
                         {getPriorityLabel(notice.priority)}
                       </span>
                     </div>
-                    <h3 className="font-semibold text-slate-800 text-sm mt-1 line-clamp-2">{notice.title}</h3>
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notice.excerpt}</p>
+                    <h3 className="font-semibold text-slate-800 dark:text-white text-sm mt-1 line-clamp-2">{notice.title}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{notice.excerpt}</p>
                   </div>
                 </div>
                 <div className="flex gap-1 ml-2">
-                  <button onClick={() => openViewModal(notice)} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all duration-300 hover:scale-110" title="বিস্তারিত"><Eye className="h-4 w-4" /></button>
-                  <button onClick={() => openEditModal(notice)} className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all duration-300 hover:scale-110" title="সম্পাদনা"><Edit className="h-4 w-4" /></button>
-                  <button onClick={() => openDeleteModal(notice)} className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all duration-300 hover:scale-110" title="ডিলিট"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => openViewModal(notice)} className="p-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all duration-300 hover:scale-110" title="বিস্তারিত"><Eye className="h-4 w-4" /></button>
+                  <button onClick={() => openEditModal(notice)} className="p-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition-all duration-300 hover:scale-110" title="সম্পাদনা"><Edit className="h-4 w-4" /></button>
+                  <button onClick={() => openDeleteModal(notice)} className="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-all duration-300 hover:scale-110" title="ডিলিট"><Trash2 className="h-4 w-4" /></button>
                 </div>
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-[10px] text-gray-400">
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-[10px] text-gray-400 dark:text-gray-500">
                 <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {notice.date}</span>
                 <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {notice.time}</span>
-                <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {notice.views}</span>
+                <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {toBanglaNumber(notice.views)}</span>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">শিরোনাম</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ক্যাটাগরি</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">অগ্রাধিকার</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">তারিখ</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">একশন</th>
+                <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">শিরোনাম</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">ক্যাটাগরি</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">অগ্রাধিকার</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">তারিখ</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">একশন</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {filteredNotices.map((notice) => (
-                  <tr key={notice.id} className="hover:bg-green-50/50 transition-colors duration-200 group">
-                    <td className="px-4 py-3 font-medium text-slate-800 group-hover:text-green-700 transition-colors">{notice.title}</td>
+                  <tr key={notice.id} className="hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-colors duration-200 group">
+                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-white group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">{notice.title}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs ${getCategoryColor(notice.category)}`}>
                         {getCategoryLabel(notice.category)}
@@ -717,12 +735,12 @@ export default function AdminNotices() {
                         {getPriorityLabel(notice.priority)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{notice.date}</td>
+                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{notice.date}</td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-1.5">
-                        <button onClick={() => openViewModal(notice)} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all duration-300 hover:scale-110"><Eye className="h-4 w-4" /></button>
-                        <button onClick={() => openEditModal(notice)} className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all duration-300 hover:scale-110"><Edit className="h-4 w-4" /></button>
-                        <button onClick={() => openDeleteModal(notice)} className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all duration-300 hover:scale-110"><Trash2 className="h-4 w-4" /></button>
+                        <button onClick={() => openViewModal(notice)} className="p-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all duration-300 hover:scale-110"><Eye className="h-4 w-4" /></button>
+                        <button onClick={() => openEditModal(notice)} className="p-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition-all duration-300 hover:scale-110"><Edit className="h-4 w-4" /></button>
+                        <button onClick={() => openDeleteModal(notice)} className="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-all duration-300 hover:scale-110"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -735,11 +753,11 @@ export default function AdminNotices() {
 
       {filteredNotices.length === 0 && (
         <div className="text-center py-16">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
-            <Megaphone className="h-10 w-10 text-gray-400" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
+            <Megaphone className="h-10 w-10 text-gray-400 dark:text-gray-500" />
           </div>
-          <h3 className="text-xl font-semibold text-slate-800 mb-2">কোন নোটিশ পাওয়া যায়নি</h3>
-          <p className="text-gray-500 max-w-md mx-auto">আপনার অনুসন্ধান বা ফিল্টারের সাথে মেলে এমন কোনো নোটিশ নেই।</p>
+          <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-2">কোন নোটিশ পাওয়া যায়নি</h3>
+          <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">আপনার অনুসন্ধান বা ফিল্টারের সাথে মেলে এমন কোনো নোটিশ নেই।</p>
         </div>
       )}
 

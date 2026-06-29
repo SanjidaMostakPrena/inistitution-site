@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Award,
   FileText,
@@ -32,7 +33,14 @@ import {
   GraduationCap,
 } from "lucide-react";
 
-// ===== MOCK DATA (initially from public page) =====
+// ===== HELPER: বাংলা সংখ্যা =====
+const toBanglaNumber = (num: number | string): string => {
+  if (num === undefined || num === null) return "০";
+  const banglaDigits = "০১২৩৪৫৬৭৮৯";
+  return num.toString().replace(/\d/g, (digit) => banglaDigits[parseInt(digit)]);
+};
+
+// ===== MOCK DATA (with Bangla numbers) =====
 const initialResults = [
   {
     id: 1,
@@ -227,27 +235,42 @@ const getCategoryBadge = (category: string) => {
 
 const getGradeColor = (grade: string) => {
   const colors: Record<string, string> = {
-    "এ+": "bg-emerald-100 text-emerald-700 border-emerald-200",
-    "এ": "bg-green-100 text-green-700 border-green-200",
-    "এ-": "bg-lime-100 text-lime-700 border-lime-200",
-    "বি+": "bg-blue-100 text-blue-700 border-blue-200",
+    "এ+": "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700",
+    "এ": "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700",
+    "এ-": "bg-lime-100 text-lime-700 border-lime-200 dark:bg-lime-900/30 dark:text-lime-400 dark:border-lime-700",
+    "বি+": "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700",
   };
-  return colors[grade] || "bg-gray-100 text-gray-700";
+  return colors[grade] || "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
 };
 
 const getTypeColor = (type: string) => {
   const colors: Record<string, string> = {
-    primary: "bg-green-100 text-green-700",
-    secondary: "bg-purple-100 text-purple-700",
-    board: "bg-yellow-100 text-yellow-700",
-    internal: "bg-blue-100 text-blue-700",
-    all: "bg-gray-100 text-gray-700",
+    primary: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    secondary: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+    board: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+    internal: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    all: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
   };
-  return colors[type] || "bg-gray-100 text-gray-700";
+  return colors[type] || "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
 };
 
 // ===== MAIN COMPONENT =====
 export default function AdminResults() {
+  // ===== Dark/Light Mode Sync (same as header) =====
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDark(true);
+      document.documentElement.classList.add("dark");
+    } else {
+      setIsDark(false);
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+  // ===================================================
+
   const [results, setResults] = useState(initialResults);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
@@ -263,7 +286,7 @@ export default function AdminResults() {
   const [editFormData, setEditFormData] = useState<any>({});
   const [addFormData, setAddFormData] = useState<any>({});
 
-  // Stats
+  // Stats (convert to Bangla for display)
   const totalResults = results.length;
   const totalStudents = results.reduce((acc, r) => acc + r.totalStudents, 0);
   const totalPassed = results.reduce((acc, r) => acc + r.passed, 0);
@@ -316,7 +339,7 @@ export default function AdminResults() {
     setAddModalOpen(true);
   };
 
-  // CRUD operations
+  // CRUD operations with Bangla passRate
   const handleAddSave = () => {
     const newId = Math.max(0, ...results.map(r => r.id)) + 1;
     // Calculate pass rate if not provided
@@ -324,7 +347,8 @@ export default function AdminResults() {
     if (!passRate || passRate === "০%") {
       const total = Number(addFormData.totalStudents) || 0;
       const passed = Number(addFormData.passed) || 0;
-      passRate = total > 0 ? `${Math.round((passed / total) * 100)}%` : "০%";
+      const rate = total > 0 ? Math.round((passed / total) * 100) : 0;
+      passRate = `${toBanglaNumber(rate)}%`;
     }
     const newItem = { ...addFormData, id: newId, passRate };
     setResults([newItem, ...results]);
@@ -338,7 +362,8 @@ export default function AdminResults() {
     if (!passRate || passRate === "০%") {
       const total = Number(editFormData.totalStudents) || 0;
       const passed = Number(editFormData.passed) || 0;
-      passRate = total > 0 ? `${Math.round((passed / total) * 100)}%` : "০%";
+      const rate = total > 0 ? Math.round((passed / total) * 100) : 0;
+      passRate = `${toBanglaNumber(rate)}%`;
     }
     const updatedItem = { ...editFormData, passRate };
     const updatedResults = results.map((r) =>
@@ -361,24 +386,24 @@ export default function AdminResults() {
     if (!selectedItem) return null;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 animate-scale-in">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 animate-scale-in">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <Award className="h-5 w-5 text-green-600" />
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <Award className="h-5 w-5 text-green-600 dark:text-green-400" />
               ফলাফলের বিবরণ
             </h3>
-            <button onClick={() => setViewModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
-              <X className="h-6 w-6 text-gray-400" />
+            <button onClick={() => setViewModalOpen(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <X className="h-6 w-6 text-gray-400 dark:text-gray-500" />
             </button>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-4 text-gray-700 dark:text-gray-300">
             <div><strong>শিরোনাম:</strong> {selectedItem.title}</div>
             <div><strong>শ্রেণী:</strong> {selectedItem.class}</div>
             <div><strong>ক্যাটাগরি:</strong> {getCategoryBadge(selectedItem.category)}</div>
             <div><strong>ধরন:</strong> {getTypeBadge(selectedItem.type)}</div>
             <div><strong>তারিখ:</strong> {selectedItem.date}</div>
-            <div><strong>মোট শিক্ষার্থী:</strong> {selectedItem.totalStudents}</div>
-            <div><strong>উত্তীর্ণ:</strong> {selectedItem.passed}</div>
+            <div><strong>মোট শিক্ষার্থী:</strong> {toBanglaNumber(selectedItem.totalStudents)}</div>
+            <div><strong>উত্তীর্ণ:</strong> {toBanglaNumber(selectedItem.passed)}</div>
             <div><strong>পাসের হার:</strong> {selectedItem.passRate}</div>
             <div><strong>গ্রেড:</strong> <span className={`px-2 py-1 rounded ${getGradeColor(selectedItem.grade)}`}>{selectedItem.grade}</span></div>
             {selectedItem.semester && <div><strong>সেমিস্টার:</strong> {selectedItem.semester}</div>}
@@ -391,7 +416,7 @@ export default function AdminResults() {
             <button className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-green-700 transition-colors hover:scale-105">
               <Download className="h-4 w-4" /> ডাউনলোড
             </button>
-            <button onClick={() => setViewModalOpen(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+            <button onClick={() => setViewModalOpen(false)} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
               বন্ধ করুন
             </button>
           </div>
@@ -407,37 +432,37 @@ export default function AdminResults() {
     };
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 animate-scale-in">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 animate-scale-in">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <Plus className="h-5 w-5 text-green-600" />
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <Plus className="h-5 w-5 text-green-600 dark:text-green-400" />
               নতুন ফলাফল যোগ করুন
             </h3>
-            <button onClick={() => setAddModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
-              <X className="h-6 w-6 text-gray-400" />
+            <button onClick={() => setAddModalOpen(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <X className="h-6 w-6 text-gray-400 dark:text-gray-500" />
             </button>
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">শিরোনাম</label>
-              <input name="title" value={addFormData.title || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">শিরোনাম</label>
+              <input name="title" value={addFormData.title || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">শ্রেণী</label>
-              <input name="class" value={addFormData.class || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">শ্রেণী</label>
+              <input name="class" value={addFormData.class || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">ক্যাটাগরি</label>
-                <select name="category" value={addFormData.category || "examination"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ক্যাটাগরি</label>
+                <select name="category" value={addFormData.category || "examination"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <option value="examination">পরীক্ষা</option>
                   <option value="board">বোর্ড</option>
                   <option value="internal">অভ্যন্তরীণ</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">ধরন</label>
-                <select name="type" value={addFormData.type || "primary"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ধরন</label>
+                <select name="type" value={addFormData.type || "primary"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <option value="primary">প্রাথমিক</option>
                   <option value="secondary">মাধ্যমিক</option>
                   <option value="board">বোর্ড</option>
@@ -447,22 +472,22 @@ export default function AdminResults() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">তারিখ</label>
-              <input type="date" name="date" value={addFormData.date || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">তারিখ</label>
+              <input type="date" name="date" value={addFormData.date || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">মোট শিক্ষার্থী</label>
-                <input type="number" name="totalStudents" value={addFormData.totalStudents || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">মোট শিক্ষার্থী</label>
+                <input type="number" name="totalStudents" value={addFormData.totalStudents || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">উত্তীর্ণ</label>
-                <input type="number" name="passed" value={addFormData.passed || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">উত্তীর্ণ</label>
+                <input type="number" name="passed" value={addFormData.passed || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">গ্রেড</label>
-              <select name="grade" value={addFormData.grade || "এ"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">গ্রেড</label>
+              <select name="grade" value={addFormData.grade || "এ"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                 <option value="এ+">এ+</option>
                 <option value="এ">এ</option>
                 <option value="এ-">এ-</option>
@@ -470,33 +495,33 @@ export default function AdminResults() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">সেমিস্টার (যদি প্রযোজ্য)</label>
-              <input name="semester" value={addFormData.semester || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">সেমিস্টার (যদি প্রযোজ্য)</label>
+              <input name="semester" value={addFormData.semester || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">ফাইল নাম</label>
-              <input name="file" value={addFormData.file || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" placeholder="উদা: result-2026.pdf" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ফাইল নাম</label>
+              <input name="file" value={addFormData.file || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="উদা: result-2026.pdf" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">ফাইল সাইজ</label>
-              <input name="size" value={addFormData.size || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" placeholder="উদা: ৪৫৬ কেবি" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ফাইল সাইজ</label>
+              <input name="size" value={addFormData.size || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="উদা: ৪৫৬ কেবি" />
             </div>
             {addFormData.category === "board" && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">বোর্ড</label>
-                  <input name="board" value={addFormData.board || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">বোর্ড</label>
+                  <input name="board" value={addFormData.board || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">জিপিএ</label>
-                  <input name="gpa" value={addFormData.gpa || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">জিপিএ</label>
+                  <input name="gpa" value={addFormData.gpa || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
                 </div>
               </>
             )}
             {addFormData.category === "internal" && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">মূল্যায়নের ধরন</label>
-                <input name="assessmentType" value={addFormData.assessmentType || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">মূল্যায়নের ধরন</label>
+                <input name="assessmentType" value={addFormData.assessmentType || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
             )}
           </div>
@@ -516,37 +541,37 @@ export default function AdminResults() {
     };
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 animate-scale-in">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 animate-scale-in">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <Edit className="h-5 w-5 text-green-600" />
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <Edit className="h-5 w-5 text-green-600 dark:text-green-400" />
               ফলাফল সম্পাদনা
             </h3>
-            <button onClick={() => setEditModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
-              <X className="h-6 w-6 text-gray-400" />
+            <button onClick={() => setEditModalOpen(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <X className="h-6 w-6 text-gray-400 dark:text-gray-500" />
             </button>
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">শিরোনাম</label>
-              <input name="title" value={editFormData.title || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">শিরোনাম</label>
+              <input name="title" value={editFormData.title || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">শ্রেণী</label>
-              <input name="class" value={editFormData.class || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">শ্রেণী</label>
+              <input name="class" value={editFormData.class || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">ক্যাটাগরি</label>
-                <select name="category" value={editFormData.category || "examination"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ক্যাটাগরি</label>
+                <select name="category" value={editFormData.category || "examination"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <option value="examination">পরীক্ষা</option>
                   <option value="board">বোর্ড</option>
                   <option value="internal">অভ্যন্তরীণ</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">ধরন</label>
-                <select name="type" value={editFormData.type || "primary"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ধরন</label>
+                <select name="type" value={editFormData.type || "primary"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <option value="primary">প্রাথমিক</option>
                   <option value="secondary">মাধ্যমিক</option>
                   <option value="board">বোর্ড</option>
@@ -556,22 +581,22 @@ export default function AdminResults() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">তারিখ</label>
-              <input type="date" name="date" value={editFormData.date || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">তারিখ</label>
+              <input type="date" name="date" value={editFormData.date || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">মোট শিক্ষার্থী</label>
-                <input type="number" name="totalStudents" value={editFormData.totalStudents || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">মোট শিক্ষার্থী</label>
+                <input type="number" name="totalStudents" value={editFormData.totalStudents || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">উত্তীর্ণ</label>
-                <input type="number" name="passed" value={editFormData.passed || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">উত্তীর্ণ</label>
+                <input type="number" name="passed" value={editFormData.passed || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">গ্রেড</label>
-              <select name="grade" value={editFormData.grade || "এ"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">গ্রেড</label>
+              <select name="grade" value={editFormData.grade || "এ"} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                 <option value="এ+">এ+</option>
                 <option value="এ">এ</option>
                 <option value="এ-">এ-</option>
@@ -579,33 +604,33 @@ export default function AdminResults() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">সেমিস্টার (যদি প্রযোজ্য)</label>
-              <input name="semester" value={editFormData.semester || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">সেমিস্টার (যদি প্রযোজ্য)</label>
+              <input name="semester" value={editFormData.semester || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">ফাইল নাম</label>
-              <input name="file" value={editFormData.file || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ফাইল নাম</label>
+              <input name="file" value={editFormData.file || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">ফাইল সাইজ</label>
-              <input name="size" value={editFormData.size || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">ফাইল সাইজ</label>
+              <input name="size" value={editFormData.size || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
             {editFormData.category === "board" && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">বোর্ড</label>
-                  <input name="board" value={editFormData.board || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">বোর্ড</label>
+                  <input name="board" value={editFormData.board || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">জিপিএ</label>
-                  <input name="gpa" value={editFormData.gpa || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">জিপিএ</label>
+                  <input name="gpa" value={editFormData.gpa || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
                 </div>
               </>
             )}
             {editFormData.category === "internal" && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">মূল্যায়নের ধরন</label>
-                <input name="assessmentType" value={editFormData.assessmentType || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">মূল্যায়নের ধরন</label>
+                <input name="assessmentType" value={editFormData.assessmentType || ""} onChange={handleChange} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
             )}
           </div>
@@ -621,17 +646,17 @@ export default function AdminResults() {
     if (!selectedItem) return null;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-        <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-scale-in">
-          <div className="flex items-center gap-3 text-red-600 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-scale-in">
+          <div className="flex items-center gap-3 text-red-600 dark:text-red-400 mb-4">
             <AlertCircle className="h-8 w-8" />
             <h3 className="text-xl font-bold">নিশ্চিত করুন</h3>
           </div>
-          <p className="text-gray-600 mb-6">
-            আপনি কি <span className="font-semibold text-slate-800">{selectedItem.title}</span> ডিলিট করতে চান?
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            আপনি কি <span className="font-semibold text-slate-800 dark:text-white">{selectedItem.title}</span> ডিলিট করতে চান?
             এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।
           </p>
           <div className="flex gap-3">
-            <button onClick={() => setDeleteModalOpen(false)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+            <button onClick={() => setDeleteModalOpen(false)} className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
               বাতিল
             </button>
             <button onClick={handleDeleteConfirm} className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors">
@@ -645,73 +670,73 @@ export default function AdminResults() {
 
   // ===== MAIN RENDER =====
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen  dark:bg-gray-900 transition-colors duration-300">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-              <Award className="h-7 w-7 text-green-600" />
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <Award className="h-7 w-7 text-green-600 dark:text-green-400" />
               ফলাফল ব্যবস্থাপনা
             </h1>
-            <p className="text-gray-500 mt-1">পরীক্ষার ফলাফল, বোর্ড ফলাফল ও মূল্যায়ন পরিচালনা করুন</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">পরীক্ষার ফলাফল, বোর্ড ফলাফল ও মূল্যায়ন পরিচালনা করুন</p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={openAddModal} className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2.5 rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-all duration-300 hover:scale-105 flex items-center gap-2 shadow-lg">
               <Plus className="h-4 w-4" /> নতুন ফলাফল
             </button>
-            <button className="p-2.5 bg-white rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
-              <RefreshCw className="h-5 w-5 text-gray-600" />
+            <button className="p-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              <RefreshCw className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards with Bangla numbers */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-gray-500 font-medium">মোট ফলাফল</p><p className="text-2xl font-bold text-slate-800 mt-1">{totalResults}</p></div>
-            <div className="p-3 bg-blue-50 rounded-xl"><Award className="h-6 w-6 text-blue-600" /></div>
+            <div><p className="text-sm text-gray-500 dark:text-gray-400 font-medium">মোট ফলাফল</p><p className="text-2xl font-bold text-slate-800 dark:text-white mt-1">{toBanglaNumber(totalResults)}</p></div>
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl"><Award className="h-6 w-6 text-blue-600 dark:text-blue-400" /></div>
           </div>
         </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-gray-500 font-medium">মোট শিক্ষার্থী</p><p className="text-2xl font-bold text-slate-800 mt-1">{totalStudents}</p></div>
-            <div className="p-3 bg-green-50 rounded-xl"><Users className="h-6 w-6 text-green-600" /></div>
+            <div><p className="text-sm text-gray-500 dark:text-gray-400 font-medium">মোট শিক্ষার্থী</p><p className="text-2xl font-bold text-slate-800 dark:text-white mt-1">{toBanglaNumber(totalStudents)}</p></div>
+            <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-xl"><Users className="h-6 w-6 text-green-600 dark:text-green-400" /></div>
           </div>
         </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-gray-500 font-medium">মোট উত্তীর্ণ</p><p className="text-2xl font-bold text-slate-800 mt-1">{totalPassed}</p></div>
-            <div className="p-3 bg-purple-50 rounded-xl"><UserCheck className="h-6 w-6 text-purple-600" /></div>
+            <div><p className="text-sm text-gray-500 dark:text-gray-400 font-medium">মোট উত্তীর্ণ</p><p className="text-2xl font-bold text-slate-800 dark:text-white mt-1">{toBanglaNumber(totalPassed)}</p></div>
+            <div className="p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl"><UserCheck className="h-6 w-6 text-purple-600 dark:text-purple-400" /></div>
           </div>
         </div>
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-gray-500 font-medium">উত্তীর্ণের হার</p><p className="text-2xl font-bold text-green-600 mt-1">{overallPassRate}</p></div>
-            <div className="p-3 bg-orange-50 rounded-xl"><Percent className="h-6 w-6 text-orange-600" /></div>
+            <div><p className="text-sm text-gray-500 dark:text-gray-400 font-medium">উত্তীর্ণের হার</p><p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{overallPassRate}</p></div>
+            <div className="p-3 bg-orange-50 dark:bg-orange-900/30 rounded-xl"><Percent className="h-6 w-6 text-orange-600 dark:text-orange-400" /></div>
           </div>
         </div>
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
         <div className="flex flex-wrap gap-3 items-center">
           <div className="flex-1 min-w-[200px] relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="শিরোনাম বা শ্রেণী অনুসন্ধান..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
             />
           </div>
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white"
+            className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white dark:bg-gray-700 dark:text-white"
           >
             <option value="all">সকল ক্যাটাগরি</option>
             <option value="examination">পরীক্ষা</option>
@@ -721,7 +746,7 @@ export default function AdminResults() {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white"
+            className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white dark:bg-gray-700 dark:text-white"
           >
             <option value="all">সকল ধরন</option>
             <option value="primary">প্রাথমিক</option>
@@ -732,9 +757,9 @@ export default function AdminResults() {
           </select>
           <button
             onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-            className="p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-300"
+            className="p-2.5 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300"
           >
-            {viewMode === "grid" ? <List className="h-5 w-5 text-gray-600" /> : <Grid className="h-5 w-5 text-gray-600" />}
+            {viewMode === "grid" ? <List className="h-5 w-5 text-gray-600 dark:text-gray-400" /> : <Grid className="h-5 w-5 text-gray-600 dark:text-gray-400" />}
           </button>
         </div>
       </div>
@@ -745,23 +770,23 @@ export default function AdminResults() {
           {filteredResults.map((result) => (
             <div
               key={result.id}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 p-5"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 p-5"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-xl ${result.category === "board" ? "bg-yellow-100" : result.category === "internal" ? "bg-blue-100" : "bg-red-100"}`}>
-                    {result.category === "board" ? <Trophy className="h-5 w-5 text-yellow-600" /> :
-                     result.category === "internal" ? <Activity className="h-5 w-5 text-blue-600" /> :
-                     <FileText className="h-5 w-5 text-red-600" />}
+                  <div className={`p-2 rounded-xl ${result.category === "board" ? "bg-yellow-100 dark:bg-yellow-900/30" : result.category === "internal" ? "bg-blue-100 dark:bg-blue-900/30" : "bg-red-100 dark:bg-red-900/30"}`}>
+                    {result.category === "board" ? <Trophy className="h-5 w-5 text-yellow-600 dark:text-yellow-400" /> :
+                     result.category === "internal" ? <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" /> :
+                     <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-slate-800 text-sm line-clamp-2">{result.title}</h3>
-                    <p className="text-xs text-gray-500">{result.class}</p>
+                    <h3 className="font-semibold text-slate-800 dark:text-white text-sm line-clamp-2">{result.title}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{result.class}</p>
                     <div className="flex flex-wrap items-center gap-1 mt-1">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full ${getTypeColor(result.type)}`}>
                         {getTypeBadge(result.type)}
                       </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
                         {getCategoryBadge(result.category)}
                       </span>
                     </div>
@@ -771,44 +796,44 @@ export default function AdminResults() {
                   {result.grade}
                 </div>
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-[10px] text-gray-500">
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-[10px] text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {result.date}</span>
-                <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {result.totalStudents}</span>
-                <span className="flex items-center gap-1 text-green-600 font-medium"><Percent className="h-3 w-3" /> {result.passRate}</span>
+                <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {toBanglaNumber(result.totalStudents)}</span>
+                <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium"><Percent className="h-3 w-3" /> {result.passRate}</span>
               </div>
-              <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end gap-1.5">
-                <button onClick={() => openViewModal(result)} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all duration-300 hover:scale-110" title="বিস্তারিত"><Eye className="h-4 w-4" /></button>
-                <button onClick={() => openEditModal(result)} className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all duration-300 hover:scale-110" title="সম্পাদনা"><Edit className="h-4 w-4" /></button>
-                <button onClick={() => openDeleteModal(result)} className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all duration-300 hover:scale-110" title="ডিলিট"><Trash2 className="h-4 w-4" /></button>
+              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-1.5">
+                <button onClick={() => openViewModal(result)} className="p-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all duration-300 hover:scale-110" title="বিস্তারিত"><Eye className="h-4 w-4" /></button>
+                <button onClick={() => openEditModal(result)} className="p-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition-all duration-300 hover:scale-110" title="সম্পাদনা"><Edit className="h-4 w-4" /></button>
+                <button onClick={() => openDeleteModal(result)} className="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-all duration-300 hover:scale-110" title="ডিলিট"><Trash2 className="h-4 w-4" /></button>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">শিরোনাম</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">শ্রেণী</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ক্যাটাগরি</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">পাসের হার</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">গ্রেড</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">একশন</th>
+                <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">শিরোনাম</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">শ্রেণী</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">ক্যাটাগরি</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">পাসের হার</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">গ্রেড</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">একশন</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {filteredResults.map((result) => (
-                  <tr key={result.id} className="hover:bg-green-50/50 transition-colors duration-200 group">
-                    <td className="px-4 py-3 font-medium text-slate-800 group-hover:text-green-700 transition-colors">{result.title}</td>
-                    <td className="px-4 py-3 text-slate-700">{result.class}</td>
+                  <tr key={result.id} className="hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-colors duration-200 group">
+                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-white group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">{result.title}</td>
+                    <td className="px-4 py-3 text-slate-700 dark:text-gray-300">{result.class}</td>
                     <td className="px-4 py-3">
-                      <span className="inline-block px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
+                      <span className="inline-block px-2 py-0.5 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
                         {getCategoryBadge(result.category)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-medium text-green-600">{result.passRate}</td>
+                    <td className="px-4 py-3 font-medium text-green-600 dark:text-green-400">{result.passRate}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs ${getGradeColor(result.grade)}`}>
                         {result.grade}
@@ -816,9 +841,9 @@ export default function AdminResults() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-1.5">
-                        <button onClick={() => openViewModal(result)} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all duration-300 hover:scale-110"><Eye className="h-4 w-4" /></button>
-                        <button onClick={() => openEditModal(result)} className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all duration-300 hover:scale-110"><Edit className="h-4 w-4" /></button>
-                        <button onClick={() => openDeleteModal(result)} className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all duration-300 hover:scale-110"><Trash2 className="h-4 w-4" /></button>
+                        <button onClick={() => openViewModal(result)} className="p-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all duration-300 hover:scale-110"><Eye className="h-4 w-4" /></button>
+                        <button onClick={() => openEditModal(result)} className="p-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition-all duration-300 hover:scale-110"><Edit className="h-4 w-4" /></button>
+                        <button onClick={() => openDeleteModal(result)} className="p-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-all duration-300 hover:scale-110"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -831,11 +856,11 @@ export default function AdminResults() {
 
       {filteredResults.length === 0 && (
         <div className="text-center py-16">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
-            <Award className="h-10 w-10 text-gray-400" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
+            <Award className="h-10 w-10 text-gray-400 dark:text-gray-500" />
           </div>
-          <h3 className="text-xl font-semibold text-slate-800 mb-2">কোন ফলাফল পাওয়া যায়নি</h3>
-          <p className="text-gray-500 max-w-md mx-auto">আপনার অনুসন্ধান বা ফিল্টারের সাথে মেলে এমন কোনো ফলাফল নেই।</p>
+          <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-2">কোন ফলাফল পাওয়া যায়নি</h3>
+          <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">আপনার অনুসন্ধান বা ফিল্টারের সাথে মেলে এমন কোনো ফলাফল নেই।</p>
         </div>
       )}
 
