@@ -28,7 +28,7 @@ const toBanglaNumber = (num: number | string): string => {
   return num.toString().replace(/\d/g, (digit) => banglaDigits[parseInt(digit)]);
 };
 
-// ===== INITIAL MOCK DATA =====
+// = INITIAL MOCK DATA =====
 const initialRequirements = [
   {
     id: 1,
